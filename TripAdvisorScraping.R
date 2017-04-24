@@ -1,10 +1,12 @@
 # load libraries
-library(XML)
-library(xml2)
-library(pryr)
-library(plyr)
-library(rvest)
-library(stringr)
+packages=c("dplyr","XML","rvest","stringr","plyr","xml2")
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
 source("AuxiliaryDownloadFunctions.R")
 source("mainFunctionForScrapping.R")
 

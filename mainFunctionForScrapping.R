@@ -1,6 +1,6 @@
 gather <- function(path) {
   
-  #path="./data/
+  #path="./data/"
   datoteke<- list.files(path=path, pattern="*.Rda", full.names=FALSE)
   datoteke<-gsub(".Rda","",datoteke)
   try(rm(podatki_s), silent = TRUE)
@@ -31,10 +31,10 @@ gather <- function(path) {
   podatki<-podatki[!is.na(podatki$fullrev),]
   
   
-  final<-podatki[complete.cases(podatki),]
+  #final<-podatki[complete.cases(podatki),]
   
   
-  write.table(final, file = "TAOutput.txt", append = FALSE, quote = TRUE, sep = ";", row.names = FALSE)
+  write.table(podatki, file = "TAOutput.txt", append = FALSE, quote = TRUE, sep = ";", row.names = FALSE)
   
   print("TAOUTPUT has been created!")
 }
@@ -109,7 +109,7 @@ scrap <- function(x,start, end=NULL, path="./data/") {
             
             dfrating=cbind(dfrating,datah[datah$hotelid==pickhotel,c(2,3,4,5)])
             
-            print("Shranjevanje.....")
+            print("Saving...")
             print(i)
             
             filenm = paste(path,"dfrating_", pickhotel, "_",i,".Rda", sep = "")
@@ -184,7 +184,7 @@ getTAdata<-function(url)
     quote <- reviews %>% html_node(".quote span") %>% html_text()
     
     rating <- reviews %>% html_node(".ui_bubble_rating") %>% gsub("<span class=\"ui_bubble_rating bubble_", "", 
-             .)%>% gsub('0\"/>', "", .)%>% as.integer()
+             .)%>% gsub("\\D","",.)%>% as.integer()/10
     
     
     # Novi datumi
