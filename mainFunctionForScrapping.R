@@ -34,7 +34,7 @@ gather <- function(path) {
   #final<-podatki[complete.cases(podatki),]
   
   
-  write.table(podatki, file = "TAOutput.txt", append = FALSE, quote = TRUE, sep = ";", row.names = FALSE)
+  write.table(podatki, file = "TAOutput.txt", append = FALSE, quote = TRUE, sep = "|", row.names = FALSE)
   
   print("TAOUTPUT has been created!")
 }
