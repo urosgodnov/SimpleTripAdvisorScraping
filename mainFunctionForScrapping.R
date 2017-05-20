@@ -170,7 +170,9 @@ scrap <- function(x,start, end=NULL, path="./data/") {
 
 getTAdata<-function(url)
 {
-  #url<-"https://www.tripadvisor.com/Hotel_Review-g274873-d2689540-Reviews-or350-Radisson_Blu_Plaza_Hotel_Ljubljana-Ljubljana_Upper_Carniola_Region.html#REVIEWS"
+  #url<-"https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-or10-Hotel_Creina-Kranj_Upper_Carniola_Region.html#REVIEWS"
+
+  
   reviews <- url %>% read_html() %>% html_nodes("#REVIEWS .innerBubble")
   
   
@@ -190,7 +192,7 @@ getTAdata<-function(url)
     # Novi datumi
     date1 <- try(reviews %>% html_node(".relativeDate") %>% html_attr("title"), silent = TRUE)
     
-    date1 <- try(as.Date((monthR(gsub("\n", "", date1))), "%B %d, %Y"), silent = TRUE)
+    date1 <- try(as.Date(((gsub("\n", "", date1))), "%B %d, %Y"), silent = TRUE)
     
     if (class(date1) != "Date") {
       date1 <- NA
@@ -203,7 +205,7 @@ getTAdata<-function(url)
     # Za nazaj datumi
     date2 <- try(reviews %>% html_node(".ratingDate") %>% html_attr("title"), silent = TRUE)
     
-    date2 <- try(as.Date((monthR(gsub("\n", "", date2))), "%B %d, %Y"), silent = TRUE)
+    date2 <- try(as.Date(((gsub("\n", "", date2))), "%B %d, %Y"), silent = TRUE)
     
     if (class(date2) != "Date") {
       date2 <- NA
@@ -214,7 +216,7 @@ getTAdata<-function(url)
     
     date3 <- try(gsub("Reviewed ", "", reviews %>% html_node(".ratingDate") %>% html_text()), silent = TRUE)
     
-    date3 <- try(as.Date((monthR(gsub("\n", "", date3))), "%B %d, %Y"), silent = TRUE)
+    date3 <- try(as.Date(((gsub("\n", "", date3))), "%B %d, %Y"), silent = TRUE)
     
     
     if (class(date3) != "Date") {
