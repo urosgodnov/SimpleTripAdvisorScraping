@@ -1,19 +1,4 @@
-# Funkcija za pridobitev datuma
 
-monthR = function(x) 
-{
-    x = try(gsub("January", "Januar", x))
-    x = try(gsub("February", "Februar", x))
-    x = try(gsub("March", "Marec", x))
-    x = try(gsub("May", "Maj", x))
-    x = try(gsub("June", "Junij", x))
-    x = try(gsub("July", "Julij", x))
-    x = try(gsub("August", "Avgust", x))
-    x = try(gsub("October", "Oktober", x))
-    
-    
-    return(x)
-}
 
 
 
@@ -44,6 +29,8 @@ urlPrepare <- function(url, id) {
 createLinks <- function(url)
   
 {
+  
+  #url="https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-Hotel_Creina-Kranj_Upper_Carniola_Region.html"
    pages <- url %>% read_html() %>% html_nodes("#REVIEWS .pageNumbers")
   
   urllink=NA
@@ -53,7 +40,7 @@ createLinks <- function(url)
   lastPage <-max(as.integer(pages %>% html_nodes("a" ) %>% html_attr("data-page-number")))
   
   urlmainlist = url
-  morepglist = seq(10, lastPage*10, 10)
+  morepglist = seq(5, lastPage*5, 5)
   
   # url link for first search page
   urllinkmain = urlmainlist

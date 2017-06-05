@@ -28,7 +28,7 @@ gather <- function(path) {
   
   
   #Izvržem prazne fullrev
-  podatki<-podatki[!is.na(podatki$fullrev),]
+  podatki<-podatki[!is.na(podatki$fullrev) & nchar(podatki$fullrev)>10,]
   
   
   #final<-podatki[complete.cases(podatki),]
@@ -103,7 +103,7 @@ scrap <- function(x,start, end=NULL, path="./data/") {
           if (is.element(i,korakSave))
           {
             
-            dfrating = try(do.call(rbind, dfrating.l))
+            dfrating = try(do.call(rbind, dfrating.l), silent=TRUE)
             
             dfrating = dfrating[!is.na(dfrating$id), ]
             
@@ -115,9 +115,9 @@ scrap <- function(x,start, end=NULL, path="./data/") {
             filenm = paste(path,"dfrating_", pickhotel, "_",i,".Rda", sep = "")
             save(dfrating, file = filenm)
             
-            try(mem_change(rm("dfrating")))
-            try(mem_change(rm("dfrating.l")))
-            try(gc())
+            try(mem_change(rm("dfrating")), silent=TRUE)
+            try(mem_change(rm("dfrating.l")), silent = TRUE)
+            try(gc(), silent=TRUE)
             
             
             dfrating=as.data.frame(NULL)
@@ -159,9 +159,9 @@ scrap <- function(x,start, end=NULL, path="./data/") {
         
       }
       
-      try(mem_change(rm("dfrating")))
-      try(mem_change(rm("dfrating.l")))
-      try(gc())
+      try(mem_change(rm("dfrating")), silent=TRUE)
+      try(mem_change(rm("dfrating.l")), silent=TRUE)
+      try(gc(), silent=TRUE)
       
     } 
     
@@ -170,8 +170,10 @@ scrap <- function(x,start, end=NULL, path="./data/") {
 
 getTAdata<-function(url)
 {
-  #url<-"https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-or10-Hotel_Creina-Kranj_Upper_Carniola_Region.html#REVIEWS"
-
+ 
+  #url="https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-or40-Hotel_Creina-Kranj_Upper_Carniola_Region.html#REVIEWS"
+  
+  
   
   reviews <- url %>% read_html() %>% html_nodes("#REVIEWS .innerBubble")
   
@@ -188,7 +190,10 @@ getTAdata<-function(url)
     rating <- reviews %>% html_node(".ui_bubble_rating") %>% gsub("<span class=\"ui_bubble_rating bubble_", "", 
              .)%>% gsub("\\D","",.)%>% as.integer()/10
     
+    localTime<-Sys.getlocale("LC_TIME")
     
+    Sys.setlocale("LC_TIME", "C")
+      
     # Novi datumi
     date1 <- try(reviews %>% html_node(".relativeDate") %>% html_attr("title"), silent = TRUE)
     
@@ -232,13 +237,13 @@ getTAdata<-function(url)
       date <- as.Date(c(date1, date2, date3))
     }
     
-    
+    Sys.setlocale("LC_TIME", localTime) 
     
     fullrev <- sapply(as.list(id), function(x) {
       
-      
-      
       urlfull <- urlPrepare(url, x)
+      
+      
       
       # extract node set containing full review
       revid = paste("review_", x, sep = "")
@@ -247,6 +252,8 @@ getTAdata<-function(url)
       ns_fullrev=urlfull %>% read_html() %>% html_nodes(xpath=qry)%>% html_text()
       
       ns_fullrev<-gsub("\n","",ns_fullrev)
+      
+      
       
       if (length(ns_fullrev)==0) {
         
@@ -272,6 +279,8 @@ getTAdata<-function(url)
     
     
   }
+  
+  
   if (class(tmpDF)!="data.frame")
   {
     tmpDF=as.data.frame(NULL)
