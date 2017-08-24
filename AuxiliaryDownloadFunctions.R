@@ -1,7 +1,5 @@
 
 
-
-
 # Priprava URLja
 urlPrepare <- function(url, id) {
     
@@ -30,14 +28,14 @@ createLinks <- function(url)
   
 {
   
-  #url="https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-Hotel_Creina-Kranj_Upper_Carniola_Region.html"
-   pages <- url %>% read_html() %>% html_nodes("#REVIEWS .pageNumbers")
+  #url="https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-Hotel_Creina-Kranj_Upper_Carniola_Region.html#REVIEWS"
+   pages <- url %>% read_html() %>% html_nodes(".pageNumbers")%>%html_nodes(".pageNum")%>%html_attr("data-page-number")
   
   urllink=NA
   
   if (length(pages)>0) {
   
-  lastPage <-max(as.integer(pages %>% html_nodes("a" ) %>% html_attr("data-page-number")))
+  lastPage <-max(as.integer(pages))
   
   urlmainlist = url
   morepglist = seq(5, lastPage*5, 5)
@@ -61,60 +59,6 @@ createLinks <- function(url)
   return(urllink)
 }
 
-#Funkcija za obdelavo datumov
 
-monthF<-function(x)
-{
-  if (grepl("Jan",x)) {
-    r="1"
-  } else if (grepl("Feb",x)) {
-    r="2"
-  } else if (grepl("Mar",x)) {
-    r="3"
-  } else if (grepl("Apr",x)) {
-    r="4"
-  } else if (grepl("May",x)) {
-    r="5"
-  } else if (grepl("Jun",x)) {
-    r="6"
-  } else if (grepl("Jul",x)) {
-    r="7"
-  } else if (grepl("Aug",x)) {
-    r="8"
-  } else if (grepl("Sep",x)) {
-    r="9"
-  } else if (grepl("Oct",x)) {
-    r="10"
-  } else if (grepl("Nov",x)) {
-    r="11"
-  } else if (grepl("Dec",x)) {
-    r="12"
-  } else
-    r=NA
-  
-  return(r)     
-}
-
-ObdelajStarost<-function(x)
-{
-  
-  m <- regexpr("[0-9][0-9]-[0-9][0-9]", x, perl=TRUE)
-  r=ifelse((is.na(m) | m<0),NA,regmatches(x, m))
-  
-  return(r)
-  
-}
-
-ObdelajDatume<-function(x)
-{
-  
-  m1 <- regexpr("[0-9]...", x , perl=TRUE)
-  leto<-regmatches(x, m1)
-  mesec<-monthF(x)
-  r<-ifelse(is.na(mesec),NA,paste(leto,"-",mesec,"-1",sep=""))
-  
-  return(r)
-  
-}
 
 
