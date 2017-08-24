@@ -126,5 +126,7 @@ ObdelajTage<-function(podatki) {
       
     }
   }
+  
+  return(podatki)
 }
 
