@@ -25,10 +25,11 @@ datah = read.csv(file = "Hoteli1.csv", sep = ";", header = TRUE, stringsAsFactor
 hotelid = gsub(" ", "", paste(datah$Region,datah$Location, datah$Hotel, sep = ""), fixed = TRUE)
 datah = cbind(datah, hotelid)
 
-
+#Do we want to download memberid
+memberid=FALSE
 
 ##Download data
-scrap(hotelid,1,NULL)
+scrap(hotelid,1,1,"./data/",memberid)
 
 
 ##Gather data and produce TAOUPUT.txt with | delimiter

@@ -24,6 +24,25 @@ urlPrepare <- function(url, id) {
 }
 
 
+urlPrepareMembers <- function(userID) {
+  
+ 
+  
+  urllinkUID = strsplit(userID, "-")[[1]][1]
+  urllinkSRC = strsplit(userID, "-")[[1]][2]
+  
+  urllinkUID=gsub("UID_","",urllinkUID)
+  urllinkSRC=gsub("SRC_","",urllinkSRC)
+  
+  urlmember=paste("https://www.tripadvisor.com/MemberOverlay?Mode=owa&uid=",urllinkUID,sep="")
+  urlmember=paste(urlmember,"&c=&src=",urllinkSRC,paste="")
+  urlmember=paste(urlmember,"&fus=false&partner=false&LsoId=&metaReferer=ShowUserReviewsHotels",sep="")
+  urlmember=gsub(" ","",urlmember)
+  
+  return(urlmember)
+  
+}
+
 createLinks <- function(url)
   
 {

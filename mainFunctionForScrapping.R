@@ -39,7 +39,7 @@ gather <- function(path) {
   print("TAOUTPUT has been created!")
 }
 
-scrap <- function(x,start, end=NULL, path="./data/") {
+scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
   
   
   dir.create(file.path(path), showWarnings = FALSE)
@@ -93,7 +93,7 @@ scrap <- function(x,start, end=NULL, path="./data/") {
         ##if (1) {break}
         print("Step...")
         print(i)
-        dfrating.l[[i]] = try(getTAdata(urllink[i]))
+        dfrating.l[[i]] = try(getTAdata(urllink[i], memberid))
         
         
         ###Zaradi varnosti pri velikem številu korakov, snemam vsak 100 korak
@@ -168,15 +168,14 @@ scrap <- function(x,start, end=NULL, path="./data/") {
   }
 }
 
-getTAdata<-function(url)
+getTAdata<-function(url,memberid)
 {
  
-  #url="https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-or40-Hotel_Creina-Kranj_Upper_Carniola_Region.html#REVIEWS"
+  #url="https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-Hotel_Creina-Kranj_Upper_Carniola_Region.html"
   
   
   
-  reviews <- url %>% read_html() %>% html_nodes("#REVIEWS .innerBubble")
-  
+  reviews <- url %>% read_html() %>% html_nodes(".review-container")
   
   id <- gsub("rn", "", reviews %>% html_node(".quote a") %>% html_attr("id"))
   
@@ -266,15 +265,36 @@ getTAdata<-function(url)
       
     })
     
-   
+    
+    if (memberid==TRUE) {
+      
+      userID<-reviews %>%html_node(".member_info div")%>% html_attr("id")
+      
+      TAmemberID <- sapply(as.list(userID), function(x) {
+        
+        urlTAmember <- urlPrepareMembers(x)
+        
+        mTAid=urlTAmember %>% read_html() %>% html_node("a") %>% html_attr("href")
+        
+        mTAid<-gsub("/members/","",mTAid)
+        
+        
+        return (mTAid)
+
+        
+      }) 
+      } else {TAmemberID=NA}
+       
+    
+    
     
 
     
     
-    tmpDF <- data.frame(id, quote, rating, date, fullrev, stringsAsFactors = FALSE)
+    tmpDF <- data.frame(id, quote, rating, date, fullrev, TAmemberID, stringsAsFactors = FALSE)
    
     
-    colnames(tmpDF) <- c("id","quote","rating","date","fullrev")
+    colnames(tmpDF) <- c("id","quote","rating","date","fullrev", "memberID")
     
     
     
