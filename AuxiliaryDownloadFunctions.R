@@ -79,5 +79,52 @@ createLinks <- function(url)
 }
 
 
-
+ObdelajTage<-function(podatki) {
+  
+  tagi<-podatki[!is.na(podatki$tags),c("tags")]
+  tagi<-unlist(strsplit(tagi,","))
+  tagi<-as.list(unique(str_trim(tagi, side=c("both"))))
+  
+  for (i in 1:length(tagi))
+  {
+    ime<-tagi[[i]]
+    stevilo<-NA
+    podatki<-cbind(podatki,stevilo)
+    names(podatki)[ncol(podatki)]<-ime
+    
+  }
+  
+  for (i in 1:nrow(podatki))
+  {
+    
+       #####################Obdelava tagov #####################################
+    tagiVrstica<-podatki[i,c("tags")]
+    tagiVrstica<-unlist(strsplit(tagiVrstica,","))
+    tagiVrstica<-as.list(unique(str_trim(tagiVrstica, side=c("both"))))
+    
+    
+    for (j in 1:length(tagi))
+    {
+      
+      if (length(intersect(unlist(tagi),unlist(tagiVrstica)))>0)
+      {
+        if (length(intersect(tagi[[j]],unlist(tagiVrstica)))>0)
+        {
+          podatki[i,tagi[[j]]]<-1
+          
+        } else {
+          
+          podatki[i,tagi[[j]]]<-0
+          
+        }
+        
+      } else {
+        
+        podatki[i,tagi[[j]]]<-NA
+      }
+      
+      
+    }
+  }
+}
 
