@@ -265,36 +265,55 @@ getTAdata<-function(url,memberid)
       
     })
     
+    #memberid=TRUE
     
     if (memberid==TRUE) {
       
       userID<-reviews %>%html_node(".member_info div")%>% html_attr("id")
       
-      TAmemberID <- sapply(as.list(userID), function(x) {
+      TAmemberIDandDist <- sapply(as.list(userID), function(x) {
+        
+        #x<-userID[1]
         
         urlTAmember <- urlPrepareMembers(x)
         
-        mTAid=urlTAmember %>% read_html() %>% html_node("a") %>% html_attr("href")
+        memberPage<-urlTAmember %>% read_html()
+        
+        mTAid= memberPage%>% html_node("a") %>% 
+          html_attr("href")
+        
+        
         
         mTAid<-gsub("/members/","",mTAid)
         
+        Dist<-gsub("\n","",memberPage %>% html_nodes(".chartRowReviewEnhancements")%>% 
+              html_text())
         
-        return (mTAid)
+        Dist<-paste(Dist,collapse = ",")
+        
+        returndata<-data.frame(mTAid,Dist, stringsAsFactors = FALSE)
+        
+        return (returndata)
 
         
-      }) 
-      } else {TAmemberID=NA}
+      })
+      
+      TAmemberID<-unlist(TAmemberIDandDist[1,])
+      ReviewsDist<-unlist(TAmemberIDandDist[2,])
+      
+    } else {TAmemberID=NA
+            ReviewsDist=NA}
        
     
     
-    
+
 
     
     
-    tmpDF <- data.frame(id, quote, rating, date, fullrev, TAmemberID, stringsAsFactors = FALSE)
+    tmpDF <- data.frame(id, quote, rating, date, fullrev, TAmemberID, ReviewsDist, stringsAsFactors = FALSE)
    
     
-    colnames(tmpDF) <- c("id","quote","rating","date","fullrev", "memberID")
+    colnames(tmpDF) <- c("id","quote","rating","date","fullrev", "memberID","UserRatingsDistribution")
     
     
     
