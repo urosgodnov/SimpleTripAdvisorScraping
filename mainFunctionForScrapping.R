@@ -273,21 +273,30 @@ getTAdata<-function(url,memberid)
       
       TAmemberIDandDist <- sapply(as.list(userID), function(x) {
         
-        #x<-userID[1]
+       
+        
+        #x<-userID[[1]]
         
         urlTAmember <- urlPrepareMembers(x)
         
         memberPage<-urlTAmember %>% read_html()
         
-        mTAid= memberPage%>% html_node("a") %>% 
-          html_attr("href")
+        mTAid<-tryCatch(memberPage%>% html_node("a") %>% 
+                          html_attr("href"),
+                        error = function(e) {      
+                          return(NA);
+                        })
+        
+        
         
         
         
         mTAid<-gsub("/members/","",mTAid)
         
         Dist<-gsub("\n","",memberPage %>% html_nodes(".chartRowReviewEnhancements")%>% 
-              html_text())
+                     html_text())
+        
+        
         
         Dist<-paste(Dist,collapse = ",")
         
