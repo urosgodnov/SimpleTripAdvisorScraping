@@ -50,7 +50,7 @@ scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
   for (stevec in start:end) 
   {
     
-    #stevec=1
+    #stevec=2
     
     pickhotel = hotelsid[[stevec]]
     
@@ -171,7 +171,7 @@ scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
 getTAdata<-function(url,memberid)
 {
  
-  #url="https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-Hotel_Creina-Kranj_Upper_Carniola_Region.html"
+  #url<-"https://www.tripadvisor.com/Hotel_Review-g298217-d8432282-Reviews-or25-Henn_na_Hotel-Sasebo_Nagasaki_Prefecture_Kyushu_Okinawa.html#REVIEWS"
   
   
   
@@ -243,10 +243,12 @@ getTAdata<-function(url,memberid)
       urlfull <- urlPrepare(url, x)
       
       
-      
+      #print(urlfull)
       # extract node set containing full review
-      revid = paste("review_", x, sep = "")
-      qry = paste("//p[@id='", revid, "']", sep = "")
+      #revid = paste("review_", x, sep = "")
+      qry = paste("//span[@class='partial_entry' or @class='fullText hidden' or @class='fullText' or @class='fullText ']", sep = "")
+      
+      
       
       ns_fullrev=urlfull %>% read_html() %>% html_nodes(xpath=qry)%>% html_text()
       
@@ -326,6 +328,9 @@ getTAdata<-function(url,memberid)
     
     
     
+  } else {
+    
+    tmpDF=as.data.frame(NULL)
   }
   
   
