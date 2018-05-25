@@ -171,9 +171,7 @@ scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
 getTAdata<-function(url,memberid)
 {
  
-  #url<-"https://www.tripadvisor.com/Hotel_Review-g298217-d8432282-Reviews-or25-Henn_na_Hotel-Sasebo_Nagasaki_Prefecture_Kyushu_Okinawa.html#REVIEWS"
-  
-  
+  #url<-"https://www.tripadvisor.com/Hotel_Review-g294472-d317311-Reviews-or60-Hotel_Moskva-Belgrade.html"
   
   reviews <- url %>% read_html() %>% html_nodes(".review-container")
   
@@ -191,7 +189,7 @@ getTAdata<-function(url,memberid)
     
     localTime<-Sys.getlocale("LC_TIME")
     
-    Sys.setlocale("LC_TIME", "C")
+    Sys.setlocale("LC_TIME", "English")
       
     # Novi datumi
     date1 <- try(reviews %>% html_node(".relativeDate") %>% html_attr("title"), silent = TRUE)
@@ -199,10 +197,10 @@ getTAdata<-function(url,memberid)
     date1 <- try(as.Date(((gsub("\n", "", date1))), "%B %d, %Y"), silent = TRUE)
     
     if (class(date1) != "Date") {
-      date1 <- NA
+      date1 <- rep(NA,length(id))
     }
     
-    date1 <- date1[!is.na(date1)]
+    
     
     
     
@@ -212,10 +210,10 @@ getTAdata<-function(url,memberid)
     date2 <- try(as.Date(((gsub("\n", "", date2))), "%B %d, %Y"), silent = TRUE)
     
     if (class(date2) != "Date") {
-      date2 <- NA
+      date2 <- rep(NA,length(id))
     }
     
-    date2 <- date2[!is.na(date2)]
+    
     
     
     date3 <- try(gsub("Reviewed ", "", reviews %>% html_node(".ratingDate") %>% html_text()), silent = TRUE)
@@ -224,17 +222,31 @@ getTAdata<-function(url,memberid)
     
     
     if (class(date3) != "Date") {
-      date3 <- NA
+      date3 <- rep(NA,length(id))
     }
     
-    date3 <- date3[!is.na(date3)]
+    
+    date=as.Date("1900-01-01")
     
     # Združim datume
-    if (identical(date1, date2)) {
-      date = date1
-    } else {
-      date <- as.Date(c(date1, date2, date3))
+    for (z in 1:length(id)) {
+      
+    
+      if (is.na(date1[z]) & is.na(date2[z]) & is.na(date3[z])) {
+        
+        date<-c(date,NA)
+        
+      } else {
+        tempv<-c(date1[z], date2[z], date3[z])
+        NonNAindex <- min(which(!is.na(tempv)))
+        
+        date<-c(date,as.Date(tempv[NonNAindex]))
+      }
+      
     }
+    
+    date<-date[-1]
+    
     
     Sys.setlocale("LC_TIME", localTime) 
     
