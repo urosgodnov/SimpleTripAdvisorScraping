@@ -14,7 +14,7 @@ gather <- function(path) {
     {
       print(filenm)
       load(filenm)
-      return(dfrating)
+      return(dataToBeSaved)
       
     }
   })
@@ -41,7 +41,7 @@ gather <- function(path) {
 
 scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
   
-  
+
   dir.create(file.path(path), showWarnings = FALSE)
   
   if (is.null(end)) {end=length(x)}
@@ -57,7 +57,7 @@ scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
     print("Hotel")
     print(pickhotel)
     
-    
+  
     ## Kreiranje linkov
     urllink = createLinks(datah[datah$hotelid == pickhotel, 1])
     
@@ -84,7 +84,7 @@ scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
       ##Pobiranje podatkov
       dfrating=as.data.frame(NULL)
       
-      dfrating.l = as.list(rep(NA, length(length(urllink))))
+    #  dfrating.l = as.list(rep(NA, length(length(urllink))))
       
       
       for (i in 1:(length(urllink))) {
@@ -93,266 +93,184 @@ scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
         ##if (1) {break}
         print("Step...")
         print(i)
-        dfrating.l[[i]] = try(getTAdata(urllink[i], memberid))
+        #dfrating.l[[i]] = try(getTAdata(urllink[i], memberid))
         
+        dataToBeSaved=""
+        dataToBeSaved= try(getTAdata(urllink[i], memberid), silent = TRUE)
         
-        ###Zaradi varnosti pri velikem številu korakov, snemam vsak 100 korak
-        if (stkorakov>120)
-        {
+       try( if (length(dataToBeSaved)>0 & nrow(dataToBeSaved)) {
           
-          if (is.element(i,korakSave))
-          {
-            
-            dfrating = try(do.call(rbind, dfrating.l), silent=TRUE)
-            
-            dfrating = dfrating[!is.na(dfrating$id), ]
-            
-            dfrating=cbind(dfrating,datah[datah$hotelid==pickhotel,c(2,3,4,5)])
-            
-            print("Saving...")
-            print(i)
-            
-            filenm = paste(path,"dfrating_", pickhotel, "_",i,".Rda", sep = "")
-            save(dfrating, file = filenm)
-            
-            try(mem_change(rm("dfrating")), silent=TRUE)
-            try(mem_change(rm("dfrating.l")), silent = TRUE)
-            try(gc(), silent=TRUE)
-            
-            
-            dfrating=as.data.frame(NULL)
-            
-            dfrating.l = as.list(rep(NA, length(length(urllink))))
-            
-          }
+          # save to Rdataset
+          filenm = paste(path,"dfrating_", pickhotel,"_",as.character(i),".Rda", sep = "")
+          save(dataToBeSaved, file = filenm)
           
-          
-        }
-        
-        
-        
+        }, silent = TRUE )
+    
       }
+
       
-      
-      
-      
-      
-      if (stkorakov<=120 ) {
-        
-        
-        
-        dfrating = try(do.call(rbind, dfrating.l))
-        names(dfrating)
-        
-        
-        # removing NA
-        dfrating = dfrating[!is.na(dfrating$id), ]
-        
-        dfrating=cbind(dfrating,datah[datah$hotelid==pickhotel,c(2,3,4,5)])
-        head(dfrating)
-        
-        print("Saving.....")
-        
-        # save to Rdataset
-        filenm = paste(path,"dfrating_", pickhotel, ".Rda", sep = "")
-        save(dfrating, file = filenm)
-        
-      }
-      
-      try(mem_change(rm("dfrating")), silent=TRUE)
-      try(mem_change(rm("dfrating.l")), silent=TRUE)
+      try(mem_change(rm("dataToBeSaved")), silent=TRUE)
+     # try(mem_change(rm("dfrating.l")), silent=TRUE)
       try(gc(), silent=TRUE)
       
     } 
     
+  
   }
 }
 
-getTAdata<-function(url,memberid)
+getTAdata <- function(url, memberid)
 {
- 
-  #url<-"https://www.tripadvisor.com/Hotel_Review-g294472-d317311-Reviews-or60-Hotel_Moskva-Belgrade.html"
+  #url<-"https://www.tripadvisor.com/Hotel_Review-g274863-d506611-Reviews-or25-Garni_Hotel_Jadran-Bled_Upper_Carniola_Region.html#REVIEWS"
   
-  reviews <- url %>% read_html() %>% html_nodes(".review-container")
+  reviews <-
+    url %>% read_html() %>% html_nodes(xpath = "//*[contains(@class, 'hotels-community-tab-common-Card')]")
   
-  id <- gsub("rn", "", reviews %>% html_node(".quote a") %>% html_attr("id"))
   
-  if (length(id)>0)
-  {
+  quote <-
+    reviews %>% html_nodes(xpath = "//*[contains(@class, 'reviewTitleText')]") %>%
+    html_text()
+  
+  
+  
+  rating <-
+    reviews %>% html_node(".ui_bubble_rating") %>% gsub("<span class=\"ui_bubble_rating bubble_", "",
+                                                        .) %>% gsub("\\D", "", .) %>% as.integer() /
+    10
+  
+  date <-
+    reviews %>% html_nodes(xpath = "//div[contains(@class, 'EventDate')]") %>%
+    html_text()
+  
+  date <- trimws(gsub("Date of stay:", "", date))
+  
+  localTime <- Sys.getlocale("LC_TIME")
+  
+  
+  Sys.setlocale("LC_TIME", "English")
+  
+  date <- paste("01 ", date, sep = "")
+  
+  date <- dmy(date)
+  
+  Sys.setlocale("LC_TIME", localTime)
+  
+  
+  fullrevlinks <-
+    reviews %>% html_nodes(xpath = "//*[contains(@class, 'reviewTitleText')]") %>%
+    html_attr("href")
+  
+  
+  fullrev <- sapply(as.list(fullrevlinks), function(x) {
+    urlfull <- paste("https://www.tripadvisor.com", x, sep = "")
+    
+    
+    #print(urlfull)
+    # extract node set containing full review
+    #revid = paste("review_", x, sep = "")
+    qry = paste(
+      "//span[@class='partial_entry' or @class='fullText hidden' or @class='fullText' or @class='fullText ']",
+      sep = ""
+    )
+    
+    
+    print("Getting full review from TripAdvisor....")
+    ns_fullrev = urlfull %>% read_html() %>% html_nodes(xpath = qry) %>% html_text()
+    
+    ns_fullrev <- gsub("\n", "", ns_fullrev)
     
     
     
-    quote <- reviews %>% html_node(".quote span") %>% html_text()
-    
-    rating <- reviews %>% html_node(".ui_bubble_rating") %>% gsub("<span class=\"ui_bubble_rating bubble_", "", 
-             .)%>% gsub("\\D","",.)%>% as.integer()/10
-    
-    localTime<-Sys.getlocale("LC_TIME")
-    
-    Sys.setlocale("LC_TIME", "English")
-      
-    # Novi datumi
-    date1 <- try(reviews %>% html_node(".relativeDate") %>% html_attr("title"), silent = TRUE)
-    
-    date1 <- try(as.Date(((gsub("\n", "", date1))), "%B %d, %Y"), silent = TRUE)
-    
-    if (class(date1) != "Date") {
-      date1 <- rep(NA,length(id))
+    if (length(ns_fullrev) == 0) {
+      ns_fullrev = c("")
     }
     
+    return (ns_fullrev)
     
     
     
+  })
+  #memberid=TRUE
+  
+  if (memberid == TRUE) {
+    userID <- reviews %>% html_node(".member_info div") %>% html_attr("id")
     
-    # Za nazaj datumi
-    date2 <- try(reviews %>% html_node(".ratingDate") %>% html_attr("title"), silent = TRUE)
-    
-    date2 <- try(as.Date(((gsub("\n", "", date2))), "%B %d, %Y"), silent = TRUE)
-    
-    if (class(date2) != "Date") {
-      date2 <- rep(NA,length(id))
-    }
-    
-    
-    
-    
-    date3 <- try(gsub("Reviewed ", "", reviews %>% html_node(".ratingDate") %>% html_text()), silent = TRUE)
-    
-    date3 <- try(as.Date(((gsub("\n", "", date3))), "%B %d, %Y"), silent = TRUE)
-    
-    
-    if (class(date3) != "Date") {
-      date3 <- rep(NA,length(id))
-    }
-    
-    
-    date=as.Date("1900-01-01")
-    
-    # Združim datume
-    for (z in 1:length(id)) {
+    TAmemberIDandDist <- sapply(as.list(userID), function(x) {
+      #x<-userID[[1]]
       
-    
-      if (is.na(date1[z]) & is.na(date2[z]) & is.na(date3[z])) {
-        
-        date<-c(date,NA)
-        
-      } else {
-        tempv<-c(date1[z], date2[z], date3[z])
-        NonNAindex <- min(which(!is.na(tempv)))
-        
-        date<-c(date,as.Date(tempv[NonNAindex]))
-      }
+      urlTAmember <- urlPrepareMembers(x)
       
-    }
-    
-    date<-date[-1]
-    
-    
-    Sys.setlocale("LC_TIME", localTime) 
-    
-    fullrev <- sapply(as.list(id), function(x) {
+      memberPage <- urlTAmember %>% read_html()
       
-      urlfull <- urlPrepare(url, x)
-      
-      
-      #print(urlfull)
-      # extract node set containing full review
-      #revid = paste("review_", x, sep = "")
-      qry = paste("//span[@class='partial_entry' or @class='fullText hidden' or @class='fullText' or @class='fullText ']", sep = "")
+      mTAid <- tryCatch(
+        memberPage %>% html_node("a") %>%
+          html_attr("href"),
+        error = function(e) {
+          return(NA)
+          
+        }
+      )
       
       
       
-      ns_fullrev=urlfull %>% read_html() %>% html_nodes(xpath=qry)%>% html_text()
-      
-      ns_fullrev<-gsub("\n","",ns_fullrev)
       
       
+      mTAid <- gsub("/members/", "", mTAid)
       
-      if (length(ns_fullrev)==0) {
-        
-        ns_fullrev=c("")
-      }
+      Dist <-
+        gsub(
+          "\n",
+          "",
+          memberPage %>% html_nodes(".chartRowReviewEnhancements") %>%
+            html_text()
+        )
       
-      return (ns_fullrev)
       
+      
+      Dist <- paste(Dist, collapse = ",")
+      
+      returndata <- data.frame(mTAid, Dist, stringsAsFactors = FALSE)
+      
+      return (returndata)
       
       
     })
     
-    #memberid=TRUE
-    
-    if (memberid==TRUE) {
-      
-      userID<-reviews %>%html_node(".member_info div")%>% html_attr("id")
-      
-      TAmemberIDandDist <- sapply(as.list(userID), function(x) {
-        
-       
-        
-        #x<-userID[[1]]
-        
-        urlTAmember <- urlPrepareMembers(x)
-        
-        memberPage<-urlTAmember %>% read_html()
-        
-        mTAid<-tryCatch(memberPage%>% html_node("a") %>% 
-                          html_attr("href"),
-                        error = function(e) {      
-                          return(NA);
-                        })
-        
-        
-        
-        
-        
-        mTAid<-gsub("/members/","",mTAid)
-        
-        Dist<-gsub("\n","",memberPage %>% html_nodes(".chartRowReviewEnhancements")%>% 
-                     html_text())
-        
-        
-        
-        Dist<-paste(Dist,collapse = ",")
-        
-        returndata<-data.frame(mTAid,Dist, stringsAsFactors = FALSE)
-        
-        return (returndata)
-
-        
-      })
-      
-      TAmemberID<-unlist(TAmemberIDandDist[1,])
-      ReviewsDist<-unlist(TAmemberIDandDist[2,])
-      
-    } else {TAmemberID=NA
-            ReviewsDist=NA}
-       
-    
-    
-
-
-    
-    
-    tmpDF <- data.frame(id, quote, rating, date, fullrev, TAmemberID, ReviewsDist, stringsAsFactors = FALSE)
-   
-    
-    colnames(tmpDF) <- c("id","quote","rating","date","fullrev", "memberID","UserRatingsDistribution")
-    
-    
+    TAmemberID <- unlist(TAmemberIDandDist[1, ])
+    ReviewsDist <- unlist(TAmemberIDandDist[2, ])
     
   } else {
-    
-    tmpDF=as.data.frame(NULL)
+    TAmemberID = NA
+    ReviewsDist = NA
   }
   
+ 
+  tmpDF <-
+    data.frame(quote,
+               rating,
+               date,
+               fullrev,
+               TAmemberID,
+               ReviewsDist,
+               stringsAsFactors = FALSE)
   
-  if (class(tmpDF)!="data.frame")
-  {
-    tmpDF=as.data.frame(NULL)
-  } 
   
+  colnames(tmpDF) <-
+    c("quote",
+      "rating",
+      "date",
+      "fullrev",
+      "memberID",
+      "UserRatingsDistribution")
   
-  return(tmpDF) 
-  
-  
+
+if (class(tmpDF) != "data.frame")
+{
+  tmpDF = as.data.frame(NULL)
+}
+
+
+return(tmpDF)
+
+
 }

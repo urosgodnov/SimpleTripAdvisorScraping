@@ -48,8 +48,12 @@ createLinks <- function(url)
 {
   
   #url="https://www.tripadvisor.com/Hotel_Review-g644300-d668891-Reviews-Hotel_Creina-Kranj_Upper_Carniola_Region.html#REVIEWS"
-   pages <- url %>% read_html() %>% html_nodes(".pageNumbers")%>%html_nodes(".pageNum")%>%html_attr("data-page-number")
+  pages <- 
+     url %>% read_html() %>% html_nodes(".pageNumbers")%>%html_nodes(".pageNum")%>%
+       html_text()
   
+  #pages <- max(as.integer(pages))
+   
   urllink=NA
   
   if (length(pages)>0) {

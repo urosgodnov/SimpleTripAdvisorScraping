@@ -1,5 +1,5 @@
 # load libraries
-packages=c("dplyr","XML","rvest","stringr","plyr","xml2","pryr")
+packages=c("dplyr","XML","rvest","stringr","plyr","xml2","pryr","lubridate")
 package.check <- lapply(packages, FUN = function(x) {
   if (!require(x, character.only = TRUE)) {
     install.packages(x, dependencies = TRUE)
