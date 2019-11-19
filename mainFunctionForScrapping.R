@@ -139,10 +139,12 @@ getTAdata <- function(url, memberid)
     10
   
   date <-
-    reviews %>% html_nodes(xpath = "//div[contains(@class, 'EventDate')]") %>%
+    reviews %>% html_nodes(xpath = "//span[contains(@class, 'EventDate')]") %>%
     html_text()
   
   date <- trimws(gsub("Date of stay:", "", date))
+  
+  date<-date[date!=""]
   
   localTime <- Sys.getlocale("LC_TIME")
   
