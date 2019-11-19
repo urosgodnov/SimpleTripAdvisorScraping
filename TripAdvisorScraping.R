@@ -1,5 +1,5 @@
 # load libraries
-packages=c("dplyr","XML","rvest","stringr","plyr","xml2","pryr","lubridate")
+packages=c("dplyr","XML","rvest","stringr","plyr","xml2","pryr","lubridate","readxl")
 package.check <- lapply(packages, FUN = function(x) {
   if (!require(x, character.only = TRUE)) {
     install.packages(x, dependencies = TRUE)
@@ -17,7 +17,7 @@ options(stringsAsFactors = FALSE, silent=TRUE)
 # Hotels' data
 # Check Hoteli1.csv for needed data
 #Just read your file and leave all the rest alone
-
+ratingTable<-read_xlsx("RatingTable.xlsx")
 datah = read.csv(file = "Hoteli1.csv", sep = ";", header = TRUE, stringsAsFactors = FALSE)
 
 

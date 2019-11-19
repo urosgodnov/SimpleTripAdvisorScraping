@@ -121,7 +121,7 @@ scrap <- function(x,start, end=NULL, path="./data/", memberid=FALSE) {
 
 getTAdata <- function(url, memberid)
 {
-  #url<-"https://www.tripadvisor.com/Hotel_Review-g274863-d506611-Reviews-or25-Garni_Hotel_Jadran-Bled_Upper_Carniola_Region.html#REVIEWS"
+  #url<-"https://www.tripadvisor.com/Hotel_Review-g274863-d506611-Reviews-or10-Garni_Hotel_Jadran-Bled_Upper_Carniola_Region.html#REVIEWS"
   
   reviews <-
     url %>% read_html() %>% html_nodes(xpath = "//*[contains(@class, 'hotels-community-tab-common-Card')]")
@@ -134,10 +134,17 @@ getTAdata <- function(url, memberid)
   
   
   rating <-
-    reviews %>% html_node(".ui_bubble_rating") %>% gsub("<span class=\"ui_bubble_rating bubble_", "",
-                                                        .) %>% gsub("\\D", "", .) %>% as.integer() /
-    10
+    reviews %>% html_nodes(xpath = "//div[contains(@class, 'RatingLine__bubbles')]/span")%>% html_attrs()
+   
+  rating<-as.data.frame(unlist(rating))
+  colnames(rating)<-"Code"
   
+  rating<-rating%>%
+    inner_join(ratingTable, by="Code")%>%
+    select(Rating)%>%as.vector(.)
+    
+  rating<-rating[,1]
+    
   date <-
     reviews %>% html_nodes(xpath = "//span[contains(@class, 'EventDate')]") %>%
     html_text()
